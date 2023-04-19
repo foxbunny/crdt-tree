@@ -1,11 +1,11 @@
-class MultiMap extends Map {
+class MultiMap {
   constructor(values, options = {}) {
-    super(values)
+    this.map = new Map(values)
     this.options = options
   }
 
   get(key) {
-    let items = super.get(key)
+    let items = this.map.get(key)
     return items || []
   }
 
@@ -13,21 +13,26 @@ class MultiMap extends Map {
     let items = this.get(key)
     items.push(value)
     if (this.options.sort) items.sort(this.options.sort)
-    super.set(key, items)
-  }
-
-  popAll(key) {
-    let items = this.get(key)
-    super.delete(key)
-    return items
+    this.map.set(key, items)
   }
 
   pop(key, value) {
-    let items = this.get(key)
-    if (!items) return value
-    items.splice(items.indexOf(value), 1)
-    if (!items.length) super.delete(key)
-    return value
+    let items = this.get(key), returnValue = value
+    if (arguments.length === 1) {
+      returnValue = items.slice()
+      items.length = 0
+    }
+    else items.splice(items.indexOf(value), 1)
+    if (!items.length) this.delete(key)
+    return returnValue
+  }
+
+  delete(key) {
+    this.map.delete(key)
+  }
+
+  [Symbol.iterator]() {
+    return this.map[Symbol.iterator]()
   }
 }
 
@@ -64,7 +69,6 @@ function createTree(nodeList, {
   }
 
   return {
-    root,
     idLookup,
     parentIdLookup,
     childListLookup,
@@ -95,6 +99,10 @@ function getValue(tree, nodeId, key) {
 
 function getNode(tree, nodeId) {
   return tree.idLookup.get(nodeId)
+}
+
+function getNodes(tree) {
+  return Array.from(tree.idLookup.values())
 }
 
 function getData(tree, nodeId) {
@@ -164,6 +172,7 @@ function queueOperation(name, tree, t, details) {
 }
 
 function setValue(tree, nodeId, key, value) {
+  must(hasNode(tree, nodeId), `Must have ${nodeId}`)
   let node = getNode(tree, nodeId)
   node.data[key] = Object.assign(node.data[key] || {}, {value, t: tree.getTime()})
   addOperation(tree, 'setValue', node.data[key].t, {nodeId, key, value})
@@ -200,7 +209,7 @@ function insert(tree, parentId, refId, node) {
 function mergeInsert(tree, {parentId, node}) {
   if (hasNode(tree, node.id)) return
   addNode(tree, node, parentId)
-  merge(tree, tree.queue.popAll(node.id) || [])
+  merge(tree, tree.queue.pop(node.id) || [])
 }
 
 function move(tree, nodeId, parentId, refId) {
@@ -265,15 +274,19 @@ function merge(tree, operations) {
 }
 
 function purgeRemovedNodes(tree, minAge = 0) {
-  let now = tree.getTime()
-  for (let node of tree.idLookup.values())
-    if (now - node.removed >= minAge)
-      removeNode(tree, node)
+  let now = tree.getTime(), purged = []
+  for (let node of tree.idLookup.values()) if (now - node.removed >= minAge) {
+    removeNode(tree, node)
+    purged.push(node.id)
+  }
+  return purged
 }
 
 export {
+  UnmetPreconditionError,
   createTree,
   getNode,
+  getNodes,
   getData,
   getValue,
   setValue,

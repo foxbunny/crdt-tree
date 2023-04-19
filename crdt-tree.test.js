@@ -631,7 +631,7 @@ ${util.inspect(toTree(replicaB), {depth: null, colors: true})}`),
 }
 
 function findNode(replica, path) {
-  let current = replica.root
+  let current = crdtTree.getNode(replica, '')
   let pathLooked = []
   for (let p of path) {
     pathLooked.push(p)
