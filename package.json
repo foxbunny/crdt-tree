@@ -1,0 +1,13 @@
+{
+  "name": "crdt-tree",
+  "version": "1.0.0",
+  "description": "CRDT tree structure for distributed p2p collaboration",
+  "main": "crdt-tree.js",
+  "scripts": {
+    "test": "node crdt-tree.test.js",
+    "test:watch": "npx nodemon crdt-tree.test.js"
+  },
+  "author": "Hajime Yamasaki Vukelic <hajime@devi.us>",
+  "license": "UNLICENSED",
+  "type": "module"
+}
