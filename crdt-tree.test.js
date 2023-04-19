@@ -42,23 +42,23 @@ test('[U] Create replicas', function () {
   })
 })
 
-test('[U] Insert a node at the start of the subtree', function () {
+test('[U] Insert a node at the start of the childList', function () {
   let [A] = createReplicas()
   crdtTree.insert(A, 'a', '', createNode(undefined, 'a3', 'Inserted', 0))
-  assertSubtreeOrder(A, 'a', ['a3', 'a1', 'a2'])
+  assertChildListOrder(A, 'a', ['a3', 'a1', 'a2'])
 })
 
 test('[U] Insert a node after one of the existing nodes', function () {
   let [A] = createReplicas()
   crdtTree.insert(A, 'a', 'a1', createNode(undefined, 'a3', 'Inserted', 0))
-  assertSubtreeOrder(A, 'a', ['a1', 'a3', 'a2'])
+  assertChildListOrder(A, 'a', ['a1', 'a3', 'a2'])
 })
 
 test('[U] Insert multiple nodes after an existing node', function () {
   let [A] = createReplicas()
   crdtTree.insert(A, 'a', 'a1', createNode(undefined, 'a3', 'Inserted', 0))
   crdtTree.insert(A, 'a', 'a1', createNode(undefined, 'a4', 'Inserted', 0))
-  assertSubtreeOrder(A, 'a', ['a1', 'a4', 'a3', 'a2'])
+  assertChildListOrder(A, 'a', ['a1', 'a4', 'a3', 'a2'])
 })
 
 test('[E] Insert a node under a non-existent parent', function () {
@@ -78,7 +78,7 @@ test('[E] Insert a node after a non-existent node', function () {
 test('[U] Insert node in one replica then sync', function () {
   let [A, B] = createReplicas()
   crdtTree.insert(A, '', 'b', createNode(undefined, 'c', 'Third', 4))
-  assertSubtreeOrder(A, '', ['a', 'b', 'c'])
+  assertChildListOrder(A, '', ['a', 'b', 'c'])
   mergeInto(B, A)
   assertConvergence(A, B)
 })
@@ -111,30 +111,30 @@ test('[U] Insert two nodes in one replica, and merge operations in reverse', fun
   assertConvergence(A, B)
 })
 
-test('[U] Move a node to the head of the same subtree', function () {
+test('[U] Move a node to the head of the same childList', function () {
   let [A] = createReplicas()
   crdtTree.move(A, 'a2', 'a', '')
-  assertSubtreeOrder(A, 'a', ['a2', 'a1'])
+  assertChildListOrder(A, 'a', ['a2', 'a1'])
 })
 
-test('[U] Move a node to a different position within the same subtree', function () {
+test('[U] Move a node to a different position within the same childList', function () {
   let [A] = createReplicas()
   crdtTree.move(A, 'b3', 'b', 'b1')
-  assertSubtreeOrder(A, 'b', ['b1', 'b3', 'b2', 'b4'])
+  assertChildListOrder(A, 'b', ['b1', 'b3', 'b2', 'b4'])
 })
 
-test('[U] Move a node to the head of a different subtree', function () {
+test('[U] Move a node to the head of a different childList', function () {
   let [A] = createReplicas()
   crdtTree.move(A, 'b3', 'a', '')
-  assertSubtreeOrder(A, 'a', ['b3', 'a1', 'a2'])
-  assertSubtreeOrder(A, 'b', ['b1', 'b2', 'b4'])
+  assertChildListOrder(A, 'a', ['b3', 'a1', 'a2'])
+  assertChildListOrder(A, 'b', ['b1', 'b2', 'b4'])
 })
 
-test('[U] Move a node after a node in a different subtree', function () {
+test('[U] Move a node after a node in a different childList', function () {
   let [A] = createReplicas()
   crdtTree.move(A, 'b3', 'a', 'a1')
-  assertSubtreeOrder(A, 'a', ['a1', 'b3', 'a2'])
-  assertSubtreeOrder(A, 'b', ['b1', 'b2', 'b4'])
+  assertChildListOrder(A, 'a', ['a1', 'b3', 'a2'])
+  assertChildListOrder(A, 'b', ['b1', 'b2', 'b4'])
 })
 
 test('[E] Move a missing node', function () {
@@ -187,8 +187,8 @@ test('[U] Move the same node in different replicas and then converge', function 
   synchronize(A, B)
   assertConvergence(A, B)
   for (let r of [A, B]) {
-    assertSubtreeOrder(r, 'a', ['a1', 'a2'])
-    assertSubtreeOrder(r, 'b', ['b3', 'b1', 'b2', 'b4'])
+    assertChildListOrder(r, 'a', ['a1', 'a2'])
+    assertChildListOrder(r, 'b', ['b3', 'b1', 'b2', 'b4'])
   }
 })
 
@@ -225,7 +225,7 @@ test('[U] Move an inserted node and then merge in reverse order', function () {
 test('[U] Remove a node', function () {
   let [A] = createReplicas()
   crdtTree.remove(A, 'a1')
-  assertSubtreeOrder(A, 'a', [removed('a1'), 'a2'])
+  assertChildListOrder(A, 'a', [removed('a1'), 'a2'])
 })
 
 test('[U] Remove a removed node', function () {
@@ -233,7 +233,7 @@ test('[U] Remove a removed node', function () {
   crdtTree.remove(A, 'a1')
   crdtTree.remove(A, 'a1')
   assert.equal(A.operations.length, 1)
-  assertSubtreeOrder(A, 'a', [removed('a1'), 'a2'])
+  assertChildListOrder(A, 'a', [removed('a1'), 'a2'])
 })
 
 test('[E] Remove a non-existent node', function () {
@@ -300,7 +300,7 @@ test('[U] Removing then moving a node restores it', function () {
   let [A] = createReplicas()
   crdtTree.remove(A, 'a1')
   crdtTree.move(A, 'a1', 'a', 'a2')
-  assertSubtreeOrder(A, 'a', ['a2', 'a1'])
+  assertChildListOrder(A, 'a', ['a2', 'a1'])
 })
 
 test('[U] Remove a node that is moved in another replica', function () {
@@ -322,30 +322,30 @@ test('[U] Insert a node after a node that is moved in another replica', function
   crdtTree.move(B, 'a1', 'a', 'a2')
   synchronize(A, B, true)
   assertConvergence(A, B)
-  assertSubtreeOrder(A, 'a', ['a3', 'a2', 'a1'])
+  assertChildListOrder(A, 'a', ['a3', 'a2', 'a1'])
 
   crdtTree.move(A, 'b1', 'b', 'b2')
   crdtTree.insert(B, 'b', 'b1', createNode(undefined, 'b5', 'Inserted', 0))
   synchronize(A, B, true)
   assertConvergence(A, B)
-  assertSubtreeOrder(A, 'b', ['b5', 'b2', 'b1', 'b3', 'b4'])
+  assertChildListOrder(A, 'b', ['b5', 'b2', 'b1', 'b3', 'b4'])
 })
 
-test('[U] Insert a node after a node that is moved to a different subtree', function () {
+test('[U] Insert a node after a node that is moved to a different childList', function () {
   let [A, B] = createReplicas()
   crdtTree.insert(A, 'a', 'a1', createNode(undefined, 'a3', 'Inserted', 0))
   crdtTree.move(B, 'a1', 'b', 'b2')
   synchronize(A, B, true)
   assertConvergence(A, B)
-  assertSubtreeOrder(A, 'a', ['a3', 'a2'])
-  assertSubtreeOrder(A, 'b', ['b1', 'b2', 'a1', 'b3', 'b4'])
+  assertChildListOrder(A, 'a', ['a3', 'a2'])
+  assertChildListOrder(A, 'b', ['b1', 'b2', 'a1', 'b3', 'b4'])
 
   crdtTree.move(A, 'b1', 'a', 'a2')
   crdtTree.insert(B, 'b', 'b1', createNode(undefined, 'b5', 'Inserted', 0))
   synchronize(A, B, true)
   assertConvergence(A, B)
-  assertSubtreeOrder(A, 'a', ['a3', 'a2', 'b1'])
-  assertSubtreeOrder(A, 'b', ['b5', 'b2', 'a1', 'b3', 'b4'])
+  assertChildListOrder(A, 'a', ['a3', 'a2', 'b1'])
+  assertChildListOrder(A, 'b', ['b5', 'b2', 'a1', 'b3', 'b4'])
 })
 
 test('[U] Merging several of operations in order', function () {
@@ -485,7 +485,7 @@ test('[U] Purge removed nodes', function () {
   let [A] = createReplicas()
   crdtTree.remove(A, 'a1')
   crdtTree.purgeRemovedNodes(A)
-  assertSubtreeOrder(A, 'a', ['a2'])
+  assertChildListOrder(A, 'a', ['a2'])
 })
 
 test('[U] Purge removed nodes with minimum age', function () {
@@ -496,7 +496,7 @@ test('[U] Purge removed nodes with minimum age', function () {
   crdtTree.remove(A, 'a2')
   TIMER = 50
   crdtTree.purgeRemovedNodes(A, 15)
-  assertSubtreeOrder(A, 'a', [removed('a2')])
+  assertChildListOrder(A, 'a', [removed('a2')])
 })
 
 // Selecting tests to run:
@@ -550,13 +550,13 @@ function printTable(data) {
 }
 
 function toTree(replica, idOnly = false) {
-  let topLevelNodes = replica.subtreeLookup.get('')
+  let topLevelNodes = replica.childListLookup.get('')
   let tree = {}
   let queue = topLevelNodes.map(node => ({mount: tree, node}))
   for (let x, i = 0; x = queue[i]; i++) {
     x.mount[x.node.id] = idOnly ? {} : {t: x.node.t, vPos: x.node.vPos, removed: x.node.removed, data: x.node.data}
-    if (x.node.subtree.length) for (let subnode of x.node.subtree)
-      queue.push({mount: x.mount[x.node.id], node: subnode})
+    for (let child of x.node.childList)
+      queue.push({mount: x.mount[x.node.id], node: child})
   }
   return tree
 }
@@ -635,7 +635,7 @@ function findNode(replica, path) {
   let pathLooked = []
   for (let p of path) {
     pathLooked.push(p)
-    current = current.subtree.find(function (node) {return node.id === p})
+    current = current.childList.find(function (node) {return node.id === p})
     if (!current) return {found: false, looked: pathLooked}
   }
   return {found: true}
@@ -661,40 +661,40 @@ function assertNoNode(replica, path) {
     })
 }
 
-function assertSubtreeOrder(replica, nodeId, subtreeIds) {
+function assertChildListOrder(replica, nodeId, childListIds) {
   let node = crdtTree.getNode(replica, nodeId)
-  let actualSubtreeIds = node.subtree.map(x => x.id + (x.removed == null ? '' : '[[REMOVED]]'))
+  let actualChildListIds = node.childList.map(x => x.id + (x.removed == null ? '' : '[[REMOVED]]'))
   if (!node) throw new assert.AssertionError({
-    message: `Expected subtree order of ${nodeId} to match [${subtreeIds.join(', ')}], but ${nodeId} was not found`,
-    expected: subtreeIds,
+    message: `Expected childList order of ${nodeId} to match [${childListIds.join(', ')}], but ${nodeId} was not found`,
+    expected: childListIds,
     actual: null,
   })
 
-  subtreeIds = subtreeIds.map(x => typeof x === 'string' ? x : x.nodeId + (x.removed ? '[[REMOVED]]' : ''))
+  childListIds = childListIds.map(x => typeof x === 'string' ? x : x.nodeId + (x.removed ? '[[REMOVED]]' : ''))
 
   function comparison() {
     let out = []
-    for (let i = 0; i < Math.max(subtreeIds.length, actualSubtreeIds.length); i++) {
-      let expected = subtreeIds[i], actual = actualSubtreeIds[i]
+    for (let i = 0; i < Math.max(childListIds.length, actualChildListIds.length); i++) {
+      let expected = childListIds[i], actual = actualChildListIds[i]
       out.push({expected, actual, match: expected === actual})
     }
     return printTable(out)
   }
 
-  if (subtreeIds.length != actualSubtreeIds.length) throw new assert.AssertionError({
-    message: `Expected ${nodeId} subtree to match but they have different lengths:
+  if (childListIds.length != actualChildListIds.length) throw new assert.AssertionError({
+    message: `Expected ${nodeId} childList to match but they have different lengths:
   
 ${comparison()}`,
-    expected: subtreeIds,
-    actual: actualSubtreeIds,
+    expected: childListIds,
+    actual: actualChildListIds,
   })
-  for (let i = 0; i < subtreeIds.length; i++) {
-    if (actualSubtreeIds[i] !== subtreeIds[i]) throw new assert.AssertionError({
-      message: `Expected ${nodeId} subtree to match, but they diverge at index ${i}:
+  for (let i = 0; i < childListIds.length; i++) {
+    if (actualChildListIds[i] !== childListIds[i]) throw new assert.AssertionError({
+      message: `Expected ${nodeId} childList to match, but they diverge at index ${i}:
     
 ${comparison()}`,
-      expected: subtreeIds,
-      actual: actualSubtreeIds,
+      expected: childListIds,
+      actual: actualChildListIds,
     })
   }
 }

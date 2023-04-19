@@ -37,7 +37,7 @@ function createTree(nodeList, {
   queue = new MultiMap(),
 } = {}) {
   let
-    subtreeLookup = new MultiMap([], {
+    childListLookup = new MultiMap([], {
       sort: function (a, b) {
         if (a.vPos === b.vPos) return a.t - b.t
         return a.vPos - b.vPos
@@ -46,8 +46,8 @@ function createTree(nodeList, {
     root = {
       id: '',
       t: 0,
-      get subtree() {
-        return subtreeLookup.get('')
+      get childList() {
+        return childListLookup.get('')
       },
     },
     idLookup = new Map([['', root]]),
@@ -56,9 +56,9 @@ function createTree(nodeList, {
   for (let node of nodeList) {
     idLookup.set(node.id, node)
     parentIdLookup.set(node.id, node.parentId)
-    subtreeLookup.set(node.parentId, node)
-    Object.defineProperty(node, 'subtree', {
-      get() {return subtreeLookup.get(node.id)},
+    childListLookup.set(node.parentId, node)
+    Object.defineProperty(node, 'childList', {
+      get() {return childListLookup.get(node.id)},
       enumerable: false,
     })
   }
@@ -67,7 +67,7 @@ function createTree(nodeList, {
     root,
     idLookup,
     parentIdLookup,
-    subtreeLookup,
+    childListLookup,
     operations,
     queue,
     getTime,
@@ -115,9 +115,9 @@ function isChild(tree, nodeId, parentId) {
 
 function isSamePosition(tree, parentId, refId, nodeId) {
   if (refId === '') return false
-  let {subtree} = getNode(tree, parentId)
-  for (let i = 0; i < subtree.length - 1; i++) {
-    let a = subtree[i], b = subtree[i + 1]
+  let {childList} = getNode(tree, parentId)
+  for (let i = 0; i < childList.length - 1; i++) {
+    let a = childList[i], b = childList[i + 1]
     if (a.id === refId && b.id === nodeId) return true
   }
   return false
@@ -128,9 +128,9 @@ function isSamePosition(tree, parentId, refId, nodeId) {
 function addNode(tree, node, parentId) {
   tree.idLookup.set(node.id, node)
   setParent(tree, node, parentId)
-  if ('subtree' in node) return
-  Object.defineProperty(node, 'subtree', {
-    get() {return tree.subtreeLookup.get(node.id)},
+  if ('childList' in node) return
+  Object.defineProperty(node, 'childList', {
+    get() {return tree.childListLookup.get(node.id)},
     enumerable: false,
   })
 }
@@ -138,18 +138,18 @@ function addNode(tree, node, parentId) {
 function removeNode(tree, node) {
   tree.idLookup.delete(node.id)
   tree.parentIdLookup.delete(node.id)
-  tree.subtreeLookup.pop(node.parentId, node)
+  tree.childListLookup.pop(node.parentId, node)
 }
 
 function setParent(tree, node, parentId) {
   tree.parentIdLookup.set(node.id, parentId)
-  tree.subtreeLookup.set(parentId, node)
+  tree.childListLookup.set(parentId, node)
   node.parentId = parentId
 }
 
 function unsetParent(tree, node) {
   tree.parentIdLookup.delete(node.id)
-  tree.subtreeLookup.pop(node.parentId, node)
+  tree.childListLookup.pop(node.parentId, node)
   node.parentId = null
 }
 
@@ -181,10 +181,10 @@ function _insert(tree, parentId, refId, node) {
   must(hasNode(tree, parentId), `Must have "${parentId}"`)
   must(isChild(tree, refId, parentId) || refId === '', `Must have "${refId}" as child of "${parentId}"`)
   let
-    {subtree} = getNode(tree, parentId),
-    targetIndex = subtree.findIndex(function (node) {return node.id === refId}) + 1,
-    prevPos = subtree[targetIndex - 1]?.vPos || 0,
-    nextPos = subtree[targetIndex]?.vPos || 1,
+    {childList} = getNode(tree, parentId),
+    targetIndex = childList.findIndex(function (node) {return node.id === refId}) + 1,
+    prevPos = childList[targetIndex - 1]?.vPos || 0,
+    nextPos = childList[targetIndex]?.vPos || 1,
     cleanPos = prevPos + 0.4 * (nextPos - prevPos)
   node.vPos = cleanPos + (Math.random() * 0.01 * -0.005)
   node.t = tree.getTime()
