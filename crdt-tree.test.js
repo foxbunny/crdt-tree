@@ -1,7 +1,7 @@
 import * as crdtTree from './crdt-tree.js'
 import util from 'node:util'
-import {Console} from 'node:console'
-import {Transform} from 'node:stream'
+import { Console } from 'node:console'
+import { Transform } from 'node:stream'
 import assert from 'node:assert'
 
 let
@@ -24,11 +24,11 @@ test('[U] Create replicas', function () {
     createNode('a1', 'a2', 'Third', 0, 0.40198298),
     createNode('a', 'a3', 'Second-level node 2', 0, 0.690712309),
   ], {
-    getTime() {return TIMER++}
+    getTime() {return TIMER++},
   })
 
   assert.deepEqual(toTree(A, true), {
-    a: {a1: {a2: {}}, a3: {}}
+    a: {a1: {a2: {}}, a3: {}},
   })
   assert.deepEqual(crdtTree.getNode(A, 'a2'), {
     id: 'a2',
@@ -37,7 +37,7 @@ test('[U] Create replicas', function () {
     vPos: 0.40198298,
     data: {
       label: {t: 7, value: 'Third'},
-      x: {t: 8, value: 0}
+      x: {t: 8, value: 0},
     },
   })
 })
@@ -513,8 +513,9 @@ run()
 function test(name, fn) {
   TESTS.push([name, fn])
 }
+
 function run(selector) {
-  let matcher = () => true
+  let matcher = function () { return true }
   if (selector?.constructor === RegExp) matcher = function (name) {return selector.test(name)}
   if (selector?.constructor === Number) {
     if (selector < 0) matcher = function (_, index) {return TESTS.length + selector === index}
@@ -541,7 +542,7 @@ function printTable(data) {
     ts = new Transform({
       transform(chunk, enc, cb) {
         cb(null, chunk)
-      }
+      },
     }),
     logger = new Console({stdout: ts})
   logger.table(data)
@@ -732,7 +733,7 @@ function createNode(parentId, id, label, x, vPos) {
     data: {
       label: {value: label, t: TIMER++},
       x: {value: x, t: TIMER++},
-    }
+    },
   }
   return node
 }
